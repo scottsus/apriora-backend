@@ -3,6 +3,7 @@ import os
 import ffmpeg
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
+from tenacity import retry, stop_after_attempt, wait_exponential
 
 from database.connection import get_db
 from utils.postgres.store import get_audios, get_video, store_recording
@@ -17,6 +18,7 @@ def ping():
 
 
 @router.post("/process-multimedia", status_code=status.HTTP_200_OK)
+@retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=2, min=1, max=8))
 async def process_multimedia(interview_id: int, db: Session = Depends(get_db)):
     print(f"Processing recording for interview: {interview_id}")
 
@@ -58,7 +60,7 @@ async def process_multimedia(interview_id: int, db: Session = Depends(get_db)):
 
     except Exception as e:
         print(f"process_multimedia: {str(e)}")
-        return {"error": f"Unable to process recording for {interview_id}"}
+        raise
 
     finally:
         if os.path.exists(local_file_name):
