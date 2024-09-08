@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from routes.posts import router
+from routes.process import router
 from schemas.models import HealthResponse
 
 app = FastAPI()
@@ -16,7 +16,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(router=router, prefix="/posts")
+app.include_router(router=router)
 
 
 @app.get("/", response_model=HealthResponse)
